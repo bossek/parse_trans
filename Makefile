@@ -1,6 +1,6 @@
 REBAR=$(shell which rebar || echo ./rebar)
 
-.PHONY: rel all deps clean
+.PHONY: rel all deps clean test
 
 all: deps compile
 
@@ -13,7 +13,7 @@ deps:
 clean:
 	$(REBAR) clean
 
-test:
+test: compile
 	$(REBAR) eunit
 
 doc:
