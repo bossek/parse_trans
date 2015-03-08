@@ -48,6 +48,16 @@ i_test() ->
     [{a_fun, F}] = gb_trees:to_list(T),
     ?assertEqual({value}, F(value)).
 
+recursive_expand_test() ->
+    ?CLEAR_CALLED,
+    Ta = recursive_expand(a),
+    Tb = recursive_expand(b),
+    Tc = recursive_expand(c),
+    ?CHECK_EXPANDED_NOT_CALLED,
+    ?assertEqual([1, 2, 3], Ta),
+    ?assertEqual([[1, 2, 3], [1, 2, 3]], Tb),
+    ?assertEqual([1, 2, 3], Tc).
+
 zip([H1|T1], [H2|T2]) ->
     ?CALLED(zip),
     F = my_fun2(),
@@ -67,3 +77,19 @@ my_fun() ->
 my_fun2() ->
     ?CALLED(my_fun2),
     fun wrap/1.
+
+recursive_expand(a) ->
+    ct_expand:term(begin
+                       ?CALLED('recursive(a)'),
+                       lists:sort([3, 1, 2])
+                   end);
+recursive_expand(b) ->
+    ct_expand:term(begin
+                       ?CALLED('recursive(b)'),
+                       [recursive_expand(a), recursive_expand(c)]
+                   end);
+recursive_expand(c) ->
+    ct_expand:term(begin
+                       ?CALLED('recursive(c)'),
+                       recursive_expand(a)
+                   end).

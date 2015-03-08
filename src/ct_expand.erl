@@ -132,7 +132,7 @@ eval_lfun({function,L,F,_,Clauses}, Args, Bs, Forms, Trace) ->
 	    Expr = {call, L, {'fun', L, {clauses, lfun_rewrite(Clauses, Forms)}}, ArgsV},
 	    call_trace(Trace =/= [], L, F, ArgsV),
 	    {value, Ret, _} =
-		erl_eval:expr(Expr, erl_eval:new_bindings(), lfh(Forms, Trace)),
+		erl_eval:expr(Expr, erl_eval:new_bindings(), lfh(Forms, Trace), nlfh()),
 	    ret_trace(lists:member(r, Trace) orelse lists:member(x, Trace),
 		      L, F, Args, Ret),
 	    %% restore bindings
@@ -150,6 +150,14 @@ lfh(Forms, Trace) ->
 		     extract_fun(Name, length(As), Forms),
 		     As, Bs1, Forms, Trace)
 	   end}.
+
+nlfh() ->
+    {value, fun nlfh/2}.
+
+nlfh({?MODULE, term}, [Result]) ->
+    Result;
+nlfh({M, F}, A) ->
+    erlang:apply(M, F, A).
 
 call_trace(false, _, _, _) -> ok;
 call_trace(true, L, F, As) ->
